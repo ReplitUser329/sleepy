@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>NBA Game Summary</title>
+  <style>
+    body { font-family: Arial; padding: 20px; background: #121212; color: #fff; }
+    h1 { text-align: center; margin-bottom: 20px; color: #f5c518; }
+    #search { margin-bottom: 20px; padding: 10px; width: 300px; border-radius: 5px; border: none; }
+    .player-card { 
+      background: #1e1e1e; 
+      margin-bottom: 10px; 
+      padding: 10px; 
+      border-radius: 5px; 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+    }
+    .player-card span { font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>NBA Game Summary</h1>
+  <input type="text" id="search" placeholder="Search by player or team">
+  <div id="players"></div>
+
+  <script>
+    let allPlayers = {};
+    async function fetchPlayers() {
+      const res = await fetch('https://api.sleeper.app/v1/players/nba');
+      allPlayers = await res.json();
+      displayPlayers(Object.values(allPlayers).slice(0, 50));
+    }
+
+    function displayPlayers(players) {
+      const container = document.getElementById('players');
+      container.innerHTML = '';
+      players.forEach(p => {
+        const div = document.createElement('div');
+        div.className = 'player-card';
+        div.innerHTML = `<span>${p.first_name} ${p.last_name}</span><span>${p.team} | ${p.position}</span>`;
+        container.appendChild(div);
+      });
+    }
+
+    document.getElementById('search').addEventListener('input', (e) => {
+      const q = e.target.value.toLowerCase();
+      const filtered = Object.values(allPlayers).filter(p =>
+        `${p.first_name} ${p.last_name}`.toLowerCase().includes(q) ||
+        p.team.toLowerCase().includes(q) ||
+        p.position.toLowerCase().includes(q)
+      );
+      displayPlayers(filtered.slice(0,50));
+    });
+
+    fetchPlayers();
+  </script>
+</body>
+</html>
