@@ -8,71 +8,84 @@
       font-family: Arial, sans-serif;
       background: #121212;
       color: #fff;
-      padding: 20px;
       margin: 0;
+      padding: 20px;
     }
     h1, h2 {
       text-align: center;
-      color: #ff69b4; /* pink headers */
+      color: #ff69b4;
+      margin-bottom: 15px;
     }
     #search {
       display: block;
-      margin: 20px auto;
+      margin: 0 auto 30px auto;
       padding: 10px;
       width: 300px;
       border-radius: 5px;
       border: none;
     }
-    .player-card, .game-card, .team-card, .standings-card {
-      background: #00ffff20; /* teal transparent */
-      margin: 10px 0;
-      padding: 15px;
-      border-radius: 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 30px;
     }
-    .top-player {
-      background: #ff69b420; /* pink transparent */
+    .card {
+      background: #00ffff20;
+      border-radius: 15px;
       padding: 15px;
-      margin-bottom: 15px;
-      border-radius: 10px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.2s;
+    }
+    .card:hover {
+      transform: scale(1.05);
+      background: #00ffff40;
+    }
+    .top-card {
+      background: #ff69b420;
       font-weight: bold;
+      padding: 15px;
+      border-radius: 15px;
+      text-align: center;
+    }
+    .card span {
+      margin: 5px 0;
     }
     .section {
-      margin-bottom: 30px;
+      margin-bottom: 40px;
     }
   </style>
 </head>
 <body>
 
 <h1>NBA Info Hub</h1>
-
 <input type="text" id="search" placeholder="Search players, teams, or positions">
 
 <div class="section">
   <h2>Top Performers</h2>
-  <div id="top-performers"></div>
+  <div id="top-performers" class="grid"></div>
 </div>
 
 <div class="section">
   <h2>Recent Games</h2>
-  <div id="games"></div>
+  <div id="games" class="grid"></div>
 </div>
 
 <div class="section">
   <h2>All Players</h2>
-  <div id="players"></div>
+  <div id="players" class="grid"></div>
 </div>
 
 <div class="section">
   <h2>Teams</h2>
-  <div id="teams"></div>
+  <div id="teams" class="grid"></div>
 </div>
 
 <div class="section">
   <h2>Standings</h2>
-  <div id="standings"></div>
+  <div id="standings" class="grid"></div>
 </div>
 
 <script>
@@ -86,14 +99,18 @@ async function fetchPlayers() {
   displayPlayers(Object.values(allPlayers).slice(0, 50));
 }
 
-// Display all players (initial)
+// Display all players as cards
 function displayPlayers(players) {
   const container = document.getElementById('players');
   container.innerHTML = '';
   players.forEach(p => {
     const div = document.createElement('div');
-    div.className = 'player-card';
-    div.innerHTML = `<span>${p.first_name} ${p.last_name}</span><span>${p.team} | ${p.position}</span>`;
+    div.className = 'card';
+    div.innerHTML = `
+      <span><strong>${p.first_name} ${p.last_name}</strong></span>
+      <span>Team: ${p.team}</span>
+      <span>Position: ${p.position}</span>
+    `;
     container.appendChild(div);
   });
 }
@@ -109,9 +126,8 @@ document.getElementById('search').addEventListener('input', (e) => {
   displayPlayers(filtered.slice(0, 50));
 });
 
-// Top performers (dummy points example)
+// Top performers (example by points)
 async function displayTopPerformers() {
-  // Example: fetch weekly stats (use real season/week if you want)
   const season = '2025';
   const week = '1';
   try {
@@ -126,11 +142,15 @@ async function displayTopPerformers() {
       const player = allPlayers[stat.player_id];
       if(!player) return;
       const div = document.createElement('div');
-      div.className = 'top-player';
-      div.textContent = `${player.first_name} ${player.last_name} | ${player.team} | ${stat.pts} pts, ${stat.reb} reb, ${stat.ast} ast`;
+      div.className = 'top-card';
+      div.innerHTML = `
+        <span>${player.first_name} ${player.last_name}</span>
+        <span>${player.team}</span>
+        <span>${stat.pts} pts | ${stat.reb} reb | ${stat.ast} ast</span>
+      `;
       container.appendChild(div);
     });
-  } catch(err) { console.error(err); }
+  } catch(err){ console.error(err); }
 }
 
 // Fetch recent games
@@ -140,52 +160,58 @@ async function fetchGames() {
     const data = await res.json();
     const container = document.getElementById('games');
     container.innerHTML = '';
-    data.nba_games.slice(-5).forEach(game=>{
+    data.nba_games.slice(-6).forEach(game=>{
       const div = document.createElement('div');
-      div.className = 'game-card';
-      div.textContent = `${game.home_team} ${game.home_score} - ${game.away_team} ${game.away_score} | ${game.status}`;
+      div.className = 'card';
+      div.innerHTML = `
+        <span>${game.home_team} ${game.home_score}</span>
+        <span>${game.away_team} ${game.away_score}</span>
+        <span>Status: ${game.status}</span>
+      `;
       container.appendChild(div);
     });
   } catch(err){ console.error(err); }
 }
 
-// Fetch teams (basic info)
+// Fetch teams
 async function fetchTeams() {
   try {
     const res = await fetch('https://api.sleeper.app/v1/teams/nba');
     const teams = await res.json();
     allTeams = teams;
     const container = document.getElementById('teams');
+    container.innerHTML = '';
     Object.values(teams).forEach(team=>{
       const div = document.createElement('div');
-      div.className = 'team-card';
-      div.textContent = `${team.full_name} | ${team.abbr} | Conf: ${team.conference} | Div: ${team.division}`;
+      div.className = 'card';
+      div.innerHTML = `
+        <span>${team.full_name} (${team.abbr})</span>
+        <span>Conf: ${team.conference} | Div: ${team.division}</span>
+      `;
       container.appendChild(div);
     });
   } catch(err){ console.error(err); }
 }
 
-// Dummy standings (can improve with API data)
+// Display standings (dummy wins/losses)
 function displayStandings() {
   const container = document.getElementById('standings');
   container.innerHTML = '';
   Object.values(allTeams).forEach(team=>{
     const div = document.createElement('div');
-    div.className = 'standings-card';
+    div.className = 'card';
     div.textContent = `${team.full_name} | ${team.wins || 0}-${team.losses || 0}`;
     container.appendChild(div);
   });
 }
 
-// Initial fetch
+// Initialize site
 fetchPlayers();
 displayTopPerformers();
 fetchGames();
 fetchTeams();
 displayStandings();
-
 </script>
 
 </body>
 </html>
-
