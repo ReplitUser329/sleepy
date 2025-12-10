@@ -38,6 +38,7 @@
       flex-direction: column;
       justify-content: space-between;
       transition: transform 0.2s;
+      cursor: pointer;
     }
     .card:hover {
       transform: scale(1.05);
@@ -49,6 +50,7 @@
       padding: 15px;
       border-radius: 15px;
       text-align: center;
+      cursor: default;
     }
     .card span {
       margin: 5px 0;
@@ -59,6 +61,32 @@
     .sortable-header {
       cursor: pointer;
       text-decoration: underline;
+    }
+    #player-details {
+      position: fixed;
+      top: 10%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #121212;
+      border: 2px solid #ff69b4;
+      border-radius: 15px;
+      padding: 20px;
+      z-index: 1000;
+      max-width: 600px;
+      max-height: 80%;
+      overflow-y: auto;
+      display: none;
+    }
+    #player-details h3 {
+      text-align: center;
+      color: #ff69b4;
+    }
+    #close-details {
+      cursor: pointer;
+      color: #ff69b4;
+      text-align: right;
+      font-weight: bold;
+      margin-bottom: 10px;
     }
   </style>
 </head>
@@ -97,12 +125,19 @@
   <div id="news" class="grid"></div>
 </div>
 
+<!-- Player details modal -->
+<div id="player-details">
+  <div id="close-details">Close ✖</div>
+  <h3 id="player-name"></h3>
+  <div id="player-stats"></div>
+</div>
+
 <script>
 let allPlayers = [];
 let allTeams = {};
 let standingsSorted = false;
 
-// Fetch NBA players from Sleeper API
+// Fetch NBA players
 async function fetchPlayers() {
   try {
     const res = await fetch('https://api.sleeper.app/v1/players/nba');
@@ -111,9 +146,10 @@ async function fetchPlayers() {
       .filter(p => p.first_name && p.last_name)
       .sort((a,b)=> a.last_name.localeCompare(b.last_name));
     displayPlayers(allPlayers);
-  } catch(err) { console.error(err); }
+  } catch(err){ console.error(err); }
 }
 
+// Display players grid
 function displayPlayers(players) {
   const container = document.getElementById('players');
   container.innerHTML = '';
@@ -125,12 +161,13 @@ function displayPlayers(players) {
       <span>Team: ${p.team || "N/A"}</span>
       <span>Position: ${p.position || "N/A"}</span>
     `;
+    div.addEventListener('click', ()=> showPlayerDetails(p));
     container.appendChild(div);
   });
 }
 
 // Search players
-document.getElementById('search').addEventListener('input', (e) => {
+document.getElementById('search').addEventListener('input', (e)=>{
   const q = e.target.value.toLowerCase();
   const filtered = allPlayers.filter(p =>
     `${p.first_name} ${p.last_name}`.toLowerCase().includes(q) ||
@@ -140,17 +177,15 @@ document.getElementById('search').addEventListener('input', (e) => {
   displayPlayers(filtered);
 });
 
-// Top performers (points, rebounds, assists)
+// Top performers
 async function displayTopPerformers() {
   try {
-    const res = await fetch(`https://api.sleeper.app/v1/stats/nba/2025/1`);
+    const res = await fetch('https://api.sleeper.app/v1/stats/nba/2025/1');
     const stats = await res.json();
     const container = document.getElementById('top-performers');
-    const playersWithPoints = stats.filter(s => s.pts);
-    playersWithPoints.sort((a,b)=>b.pts - a.pts);
-    const top5 = playersWithPoints.slice(0,5);
+    const topPlayers = stats.filter(s=>s.pts).sort((a,b)=>b.pts - a.pts).slice(0,5);
     container.innerHTML = '';
-    top5.forEach(stat=>{
+    topPlayers.forEach(stat=>{
       const player = allPlayers.find(p => p.player_id === stat.player_id);
       if(!player) return;
       const div = document.createElement('div');
@@ -212,23 +247,23 @@ function displayStandings() {
   container.innerHTML = '';
   let teamsArray = Object.values(allTeams);
   if(standingsSorted){
-    teamsArray.sort((a,b)=> (b.wins||0) - (a.wins||0));
+    teamsArray.sort((a,b)=>(b.wins||0)-(a.wins||0));
   }
   teamsArray.forEach(team=>{
     const div = document.createElement('div');
     div.className = 'card';
-    div.textContent = `${team.full_name} | ${team.wins || 0}-${team.losses || 0}`;
+    div.textContent = `${team.full_name} | ${team.wins||0}-${team.losses||0}`;
     container.appendChild(div);
   });
 }
 
 // Toggle sort standings
-document.getElementById('sort-standings').addEventListener('click', () => {
+document.getElementById('sort-standings').addEventListener('click', ()=>{
   standingsSorted = !standingsSorted;
   displayStandings();
 });
 
-// NBA news (using free newsapi.org endpoint as example)
+// NBA news (replace YOUR_NEWSAPI_KEY with free NewsAPI key)
 async function fetchNews() {
   try {
     const res = await fetch('https://newsapi.org/v2/top-headlines?category=sports&q=NBA&apiKey=YOUR_NEWSAPI_KEY&pageSize=6');
@@ -248,13 +283,51 @@ async function fetchNews() {
   } catch(err){ console.error(err); }
 }
 
-// Initialize
+// Show player stats in modal
+async function showPlayerDetails(player){
+  const modal = document.getElementById('player-details');
+  const name = document.getElementById('player-name');
+  const statsDiv = document.getElementById('player-stats');
+  name.textContent = `${player.first_name} ${player.last_name}`;
+  statsDiv.innerHTML = 'Loading stats...';
+
+  try {
+    const res = await fetch(`https://api.sleeper.app/v1/stats/nba/2025/1`);
+    const stats = await res.json();
+    const playerStats = stats.filter(s=>s.player_id === player.player_id);
+    if(playerStats.length === 0){
+      statsDiv.innerHTML = '<span>No stats available.</span>';
+    } else {
+      statsDiv.innerHTML = '';
+      playerStats.forEach(s=>{
+        const div = document.createElement('div');
+        div.className = 'card';
+        div.innerHTML = `
+          <span>PTS: ${s.pts || 0}</span>
+          <span>REB: ${s.reb || 0}</span>
+          <span>AST: ${s.ast || 0}</span>
+          <span>STL: ${s.stl || 0}</span>
+          <span>BLK: ${s.blk || 0}</span>
+        `;
+        statsDiv.appendChild(div);
+      });
+    }
+    modal.style.display = 'block';
+  } catch(err){ statsDiv.innerHTML = 'Error loading stats'; console.error(err); }
+}
+
+// Close player details
+document.getElementById('close-details').addEventListener('click', ()=>{
+  document.getElementById('player-details').style.display = 'none';
+});
+
+// Initialize all
 fetchPlayers();
 displayTopPerformers();
 fetchGames();
 fetchTeams();
 fetchNews();
-
 </script>
+
 </body>
 </html>
