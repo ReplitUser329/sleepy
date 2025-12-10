@@ -2,52 +2,35 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>NBA Game Summary</title>
-  <style>
-    body { font-family: Arial; padding: 20px; background: #121212; color: #fff; }
-    h1 { text-align: center; margin-bottom: 20px; color: #f5c518; }
-    #search { margin-bottom: 20px; padding: 10px; width: 300px; border-radius: 5px; border: none; }
-    .player-card { 
-      background: #1e1e1e; 
-      margin-bottom: 10px; 
-      padding: 10px; 
-      border-radius: 5px; 
-      display: flex; 
-      justify-content: space-between; 
-      align-items: center; 
-    }
-    .player-card span { font-weight: bold; }
-  </style><head>
-  <meta charset="UTF-8">
-  <title>NBA Game Summary</title>
-  
-  <!-- Step 3: Pink & Teal CSS -->
+  <title>NBA Info Hub</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       background: #121212;
       color: #fff;
       padding: 20px;
+      margin: 0;
     }
     h1, h2 {
       text-align: center;
       color: #ff69b4; /* pink headers */
     }
     #search {
-      margin: 20px auto;
       display: block;
+      margin: 20px auto;
       padding: 10px;
       width: 300px;
       border-radius: 5px;
       border: none;
     }
-    .player-card, .game-card {
+    .player-card, .game-card, .team-card, .standings-card {
       background: #00ffff20; /* teal transparent */
       margin: 10px 0;
       padding: 15px;
       border-radius: 10px;
       display: flex;
       justify-content: space-between;
+      align-items: center;
     }
     .top-player {
       background: #ff69b420; /* pink transparent */
@@ -56,45 +39,153 @@
       border-radius: 10px;
       font-weight: bold;
     }
+    .section {
+      margin-bottom: 30px;
+    }
   </style>
 </head>
-
-</head>
 <body>
-  <h1>NBA Game Summary</h1>
-  <input type="text" id="search" placeholder="Search by player or team">
+
+<h1>NBA Info Hub</h1>
+
+<input type="text" id="search" placeholder="Search players, teams, or positions">
+
+<div class="section">
+  <h2>Top Performers</h2>
+  <div id="top-performers"></div>
+</div>
+
+<div class="section">
+  <h2>Recent Games</h2>
+  <div id="games"></div>
+</div>
+
+<div class="section">
+  <h2>All Players</h2>
   <div id="players"></div>
+</div>
 
-  <script>
-    let allPlayers = {};
-    async function fetchPlayers() {
-      const res = await fetch('https://api.sleeper.app/v1/players/nba');
-      allPlayers = await res.json();
-      displayPlayers(Object.values(allPlayers).slice(0, 50));
-    }
+<div class="section">
+  <h2>Teams</h2>
+  <div id="teams"></div>
+</div>
 
-    function displayPlayers(players) {
-      const container = document.getElementById('players');
-      container.innerHTML = '';
-      players.forEach(p => {
-        const div = document.createElement('div');
-        div.className = 'player-card';
-        div.innerHTML = `<span>${p.first_name} ${p.last_name}</span><span>${p.team} | ${p.position}</span>`;
-        container.appendChild(div);
-      });
-    }
+<div class="section">
+  <h2>Standings</h2>
+  <div id="standings"></div>
+</div>
 
-    document.getElementById('search').addEventListener('input', (e) => {
-      const q = e.target.value.toLowerCase();
-      const filtered = Object.values(allPlayers).filter(p =>
-        `${p.first_name} ${p.last_name}`.toLowerCase().includes(q) ||
-        p.team.toLowerCase().includes(q) ||
-        p.position.toLowerCase().includes(q)
-      );
-      displayPlayers(filtered.slice(0,50));
+<script>
+let allPlayers = {};
+let allTeams = {};
+
+// Fetch NBA players
+async function fetchPlayers() {
+  const res = await fetch('https://api.sleeper.app/v1/players/nba');
+  allPlayers = await res.json();
+  displayPlayers(Object.values(allPlayers).slice(0, 50));
+}
+
+// Display all players (initial)
+function displayPlayers(players) {
+  const container = document.getElementById('players');
+  container.innerHTML = '';
+  players.forEach(p => {
+    const div = document.createElement('div');
+    div.className = 'player-card';
+    div.innerHTML = `<span>${p.first_name} ${p.last_name}</span><span>${p.team} | ${p.position}</span>`;
+    container.appendChild(div);
+  });
+}
+
+// Search functionality
+document.getElementById('search').addEventListener('input', (e) => {
+  const q = e.target.value.toLowerCase();
+  const filtered = Object.values(allPlayers).filter(p =>
+    `${p.first_name} ${p.last_name}`.toLowerCase().includes(q) ||
+    p.team.toLowerCase().includes(q) ||
+    p.position.toLowerCase().includes(q)
+  );
+  displayPlayers(filtered.slice(0, 50));
+});
+
+// Top performers (dummy points example)
+async function displayTopPerformers() {
+  // Example: fetch weekly stats (use real season/week if you want)
+  const season = '2025';
+  const week = '1';
+  try {
+    const res = await fetch(`https://api.sleeper.app/v1/stats/nba/${season}/${week}`);
+    const stats = await res.json();
+    const container = document.getElementById('top-performers');
+    const playersWithPoints = stats.filter(s => s.pts);
+    playersWithPoints.sort((a,b)=>b.pts - a.pts);
+    const top5 = playersWithPoints.slice(0,5);
+    container.innerHTML = '';
+    top5.forEach(stat=>{
+      const player = allPlayers[stat.player_id];
+      if(!player) return;
+      const div = document.createElement('div');
+      div.className = 'top-player';
+      div.textContent = `${player.first_name} ${player.last_name} | ${player.team} | ${stat.pts} pts, ${stat.reb} reb, ${stat.ast} ast`;
+      container.appendChild(div);
     });
+  } catch(err) { console.error(err); }
+}
 
-    fetchPlayers();
-  </script>
+// Fetch recent games
+async function fetchGames() {
+  try {
+    const res = await fetch('https://api.sleeper.app/v1/state/nba');
+    const data = await res.json();
+    const container = document.getElementById('games');
+    container.innerHTML = '';
+    data.nba_games.slice(-5).forEach(game=>{
+      const div = document.createElement('div');
+      div.className = 'game-card';
+      div.textContent = `${game.home_team} ${game.home_score} - ${game.away_team} ${game.away_score} | ${game.status}`;
+      container.appendChild(div);
+    });
+  } catch(err){ console.error(err); }
+}
+
+// Fetch teams (basic info)
+async function fetchTeams() {
+  try {
+    const res = await fetch('https://api.sleeper.app/v1/teams/nba');
+    const teams = await res.json();
+    allTeams = teams;
+    const container = document.getElementById('teams');
+    Object.values(teams).forEach(team=>{
+      const div = document.createElement('div');
+      div.className = 'team-card';
+      div.textContent = `${team.full_name} | ${team.abbr} | Conf: ${team.conference} | Div: ${team.division}`;
+      container.appendChild(div);
+    });
+  } catch(err){ console.error(err); }
+}
+
+// Dummy standings (can improve with API data)
+function displayStandings() {
+  const container = document.getElementById('standings');
+  container.innerHTML = '';
+  Object.values(allTeams).forEach(team=>{
+    const div = document.createElement('div');
+    div.className = 'standings-card';
+    div.textContent = `${team.full_name} | ${team.wins || 0}-${team.losses || 0}`;
+    container.appendChild(div);
+  });
+}
+
+// Initial fetch
+fetchPlayers();
+displayTopPerformers();
+fetchGames();
+fetchTeams();
+displayStandings();
+
+</script>
+
 </body>
 </html>
+
