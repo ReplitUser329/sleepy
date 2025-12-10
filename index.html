@@ -4,19 +4,21 @@
 <meta charset="UTF-8">
 <title>NBA Info Hub</title>
 <style>
-  body { font-family: Arial, sans-serif; background: #121212; color: #fff; margin:0; padding:20px;}
-  h1,h2{text-align:center;color:#ff69b4;margin-bottom:15px;}
-  #search{display:block;margin:0 auto 30px auto;padding:10px;width:300px;border-radius:5px;border:none;}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:15px;margin-bottom:30px;}
-  .card{background:#00ffff20;border-radius:15px;padding:15px;display:flex;flex-direction:column;justify-content:space-between;transition:transform 0.2s;cursor:pointer;}
-  .card:hover{transform:scale(1.05);background:#00ffff40;}
-  .top-card{background:#ff69b420;font-weight:bold;padding:15px;border-radius:15px;text-align:center;cursor:default;}
-  .card span{margin:5px 0;}
-  .section{margin-bottom:40px;}
-  .sortable-header{cursor:pointer;text-decoration:underline;}
-  #modal{position:fixed;top:10%;left:50%;transform:translateX(-50%);background:#121212;border:2px solid #ff69b4;border-radius:15px;padding:20px;z-index:1000;max-width:600px;max-height:80%;overflow-y:auto;display:none;}
-  #modal h3{text-align:center;color:#ff69b4;margin-bottom:10px;}
-  #close-modal{cursor:pointer;color:#ff69b4;text-align:right;font-weight:bold;margin-bottom:10px;}
+body { font-family: Arial, sans-serif; background:#121212; color:#fff; margin:0; padding:20px; }
+h1,h2 { text-align:center; color:#ff69b4; margin-bottom:15px; }
+#search { display:block; margin:0 auto 30px auto; padding:10px; width:300px; border-radius:5px; border:none; }
+.grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:15px; margin-bottom:30px; }
+.card { background:#00ffff20; border-radius:15px; padding:15px; display:flex; flex-direction:column; justify-content:space-between; transition:transform 0.2s; cursor:pointer; }
+.card:hover { transform:scale(1.05); background:#00ffff40; }
+.top-card { background:#ff69b420; font-weight:bold; padding:15px; border-radius:15px; text-align:center; cursor:default; }
+.card span { margin:5px 0; }
+.section { margin-bottom:40px; }
+.sortable-header { cursor:pointer; text-decoration:underline; }
+#modal { position:fixed; top:10%; left:50%; transform:translateX(-50%); background:#121212; border:2px solid #ff69b4; border-radius:15px; padding:20px; z-index:1000; max-width:600px; max-height:80%; overflow-y:auto; display:none; }
+#modal h3 { text-align:center; color:#ff69b4; margin-bottom:10px; }
+#close-modal { cursor:pointer; color:#ff69b4; text-align:right; font-weight:bold; margin-bottom:10px; }
+.table-header { font-weight:bold; display:flex; justify-content:space-between; margin-bottom:5px; cursor:pointer; }
+.table-row { display:flex; justify-content:space-between; margin-bottom:3px; }
 </style>
 </head>
 <body>
@@ -54,7 +56,7 @@
   <div id="news" class="grid"></div>
 </div>
 
-<!-- Modal for player/game details -->
+<!-- Modal -->
 <div id="modal">
   <div id="close-modal">Close ✖</div>
   <h3 id="modal-title"></h3>
@@ -64,17 +66,15 @@
 <script>
 let allPlayers=[], allTeams={}, standingsSorted=false, allGames=[];
 
-// --- Fetch players ---
+// Fetch players
 async function fetchPlayers(){
-  try{
-    const res=await fetch('https://api.sleeper.app/v1/players/nba');
-    const data=await res.json();
-    allPlayers=Object.values(data).filter(p=>p.first_name && p.last_name).sort((a,b)=>a.last_name.localeCompare(b.last_name));
-    displayPlayers(allPlayers);
-  }catch(err){console.error(err);}
+  const res=await fetch('https://api.sleeper.app/v1/players/nba');
+  const data=await res.json();
+  allPlayers=Object.values(data).filter(p=>p.first_name&&p.last_name).sort((a,b)=>a.last_name.localeCompare(b.last_name));
+  displayPlayers(allPlayers);
 }
 
-// --- Display players ---
+// Display players
 function displayPlayers(players){
   const container=document.getElementById('players');
   container.innerHTML='';
@@ -89,74 +89,68 @@ function displayPlayers(players){
   });
 }
 
-// --- Search players ---
+// Search players
 document.getElementById('search').addEventListener('input', e=>{
   const q=e.target.value.toLowerCase();
   displayPlayers(allPlayers.filter(p=>`${p.first_name} ${p.last_name}`.toLowerCase().includes(q)||
     (p.team&&p.team.toLowerCase().includes(q))||(p.position&&p.position.toLowerCase().includes(q))));
 });
 
-// --- Top performers ---
+// Top performers
 async function displayTopPerformers(){
-  try{
-    const res=await fetch('https://api.sleeper.app/v1/stats/nba/2025/1');
-    const stats=await res.json();
-    const container=document.getElementById('top-performers');
-    const topPlayers=stats.filter(s=>s.pts).sort((a,b)=>b.pts-a.pts).slice(0,5);
-    container.innerHTML='';
-    topPlayers.forEach(stat=>{
-      const player=allPlayers.find(p=>p.player_id===stat.player_id);
-      if(!player) return;
-      const div=document.createElement('div');
-      div.className='top-card';
-      div.innerHTML=`<span>${player.first_name} ${player.last_name}</span>
-                     <span>${player.team}</span>
-                     <span>${stat.pts} pts | ${stat.reb} reb | ${stat.ast} ast</span>`;
-      container.appendChild(div);
-    });
-  }catch(err){console.error(err);}
+  const res=await fetch('https://api.sleeper.app/v1/stats/nba/2025/1');
+  const stats=await res.json();
+  const container=document.getElementById('top-performers');
+  const topPlayers=stats.filter(s=>s.pts).sort((a,b)=>b.pts-a.pts).slice(0,5);
+  container.innerHTML='';
+  topPlayers.forEach(stat=>{
+    const player=allPlayers.find(p=>p.player_id===stat.player_id);
+    if(!player) return;
+    const div=document.createElement('div');
+    div.className='top-card';
+    div.innerHTML=`<span>${player.first_name} ${player.last_name}</span>
+                   <span>${player.team}</span>
+                   <span>${stat.pts} pts | ${stat.reb} reb | ${stat.ast} ast</span>`;
+    container.appendChild(div);
+  });
 }
 
-// --- Fetch games ---
+// Fetch games
 async function fetchGames(){
-  try{
-    const res=await fetch('https://api.sleeper.app/v1/state/nba');
-    const data=await res.json();
-    allGames=data.nba_games;
-    const container=document.getElementById('games');
-    container.innerHTML='';
-    allGames.slice(-6).forEach(game=>{
-      const div=document.createElement('div');
-      div.className='card';
-      div.innerHTML=`<span>${game.home_team} ${game.home_score}</span>
-                     <span>${game.away_team} ${game.away_score}</span>
-                     <span>Status: ${game.status}</span>`;
-      div.addEventListener('click',()=>showGameDetails(game));
-      container.appendChild(div);
-    });
-  }catch(err){console.error(err);}
+  const res=await fetch('https://api.sleeper.app/v1/state/nba');
+  const data=await res.json();
+  allGames=data.nba_games;
+  const container=document.getElementById('games');
+  container.innerHTML='';
+  allGames.slice(-6).forEach(game=>{
+    const div=document.createElement('div');
+    div.className='card';
+    div.innerHTML=`<span>${game.home_team} ${game.home_score}</span>
+                   <span>${game.away_team} ${game.away_score}</span>
+                   <span>Status: ${game.status}</span>`;
+    div.addEventListener('click',()=>showGameDetails(game));
+    container.appendChild(div);
+  });
 }
 
-// --- Fetch teams ---
+// Fetch teams
 async function fetchTeams(){
-  try{
-    const res=await fetch('https://api.sleeper.app/v1/teams/nba');
-    const teams=await res.json();
-    allTeams=teams;
-    const container=document.getElementById('teams');
-    container.innerHTML='';
-    Object.values(teams).forEach(team=>{
-      const div=document.createElement('div');
-      div.className='card';
-      div.innerHTML=`<span>${team.full_name} (${team.abbr})</span>
-                     <span>Conf: ${team.conference} | Div: ${team.division}</span>`;
-      container.appendChild(div);
-    });
-    displayStandings();
-  }catch(err){console.error(err);}
+  const res=await fetch('https://api.sleeper.app/v1/teams/nba');
+  const teams=await res.json();
+  allTeams=teams;
+  const container=document.getElementById('teams');
+  container.innerHTML='';
+  Object.values(teams).forEach(team=>{
+    const div=document.createElement('div');
+    div.className='card';
+    div.innerHTML=`<span>${team.full_name} (${team.abbr})</span>
+                   <span>Conf: ${team.conference} | Div: ${team.division}</span>`;
+    container.appendChild(div);
+  });
+  displayStandings();
 }
 
-// --- Display standings ---
+// Standings
 function displayStandings(){
   const container=document.getElementById('standings');
   container.innerHTML='';
@@ -170,13 +164,13 @@ function displayStandings(){
   });
 }
 
-// --- Toggle standings sort ---
+// Toggle standings sort
 document.getElementById('sort-standings').addEventListener('click', ()=>{
   standingsSorted=!standingsSorted;
   displayStandings();
 });
 
-// --- Fetch news ---
+// Fetch news (replace YOUR_NEWSAPI_KEY)
 async function fetchNews(){
   try{
     const res=await fetch('https://newsapi.org/v2/top-headlines?category=sports&q=NBA&apiKey=YOUR_NEWSAPI_KEY&pageSize=6');
@@ -191,10 +185,10 @@ async function fetchNews(){
                      <a href="${article.url}" target="_blank" style="color:#ff69b4;">Read</a>`;
       container.appendChild(div);
     });
-  }catch(err){console.error(err);}
+  }catch(err){ console.error(err);}
 }
 
-// --- Show player details ---
+// Show player details modal
 async function showPlayerDetails(player){
   const modal=document.getElementById('modal');
   const title=document.getElementById('modal-title');
@@ -208,22 +202,23 @@ async function showPlayerDetails(player){
     if(playerStats.length===0){ content.innerHTML='<span>No stats available.</span>'; }
     else{
       content.innerHTML='';
+      // Create sortable table
+      const header=document.createElement('div');
+      header.className='table-header';
+      header.innerHTML='<span>Date</span><span>PTS</span><span>REB</span><span>AST</span>';
+      content.appendChild(header);
       playerStats.forEach(s=>{
-        const div=document.createElement('div');
-        div.className='card';
-        div.innerHTML=`<span>PTS: ${s.pts||0}</span>
-                       <span>REB: ${s.reb||0}</span>
-                       <span>AST: ${s.ast||0}</span>
-                       <span>STL: ${s.stl||0}</span>
-                       <span>BLK: ${s.blk||0}</span>`;
-        content.appendChild(div);
+        const row=document.createElement('div');
+        row.className='table-row';
+        row.innerHTML=`<span>${s.game_id}</span><span>${s.pts||0}</span><span>${s.reb||0}</span><span>${s.ast||0}</span>`;
+        content.appendChild(row);
       });
     }
     modal.style.display='block';
   }catch(err){ content.innerHTML='Error loading stats'; console.error(err);}
 }
 
-// --- Show game details ---
+// Show game details modal
 async function showGameDetails(game){
   const modal=document.getElementById('modal');
   const title=document.getElementById('modal-title');
@@ -237,24 +232,27 @@ async function showGameDetails(game){
     if(playersInGame.length===0){ content.innerHTML='<span>No stats available.</span>'; }
     else{
       content.innerHTML='';
+      const header=document.createElement('div');
+      header.className='table-header';
+      header.innerHTML='<span>Player</span><span>PTS</span><span>REB</span><span>AST</span>';
+      content.appendChild(header);
       playersInGame.forEach(s=>{
         const player=allPlayers.find(p=>p.player_id===s.player_id);
         if(!player) return;
-        const div=document.createElement('div');
-        div.className='card';
-        div.innerHTML=`<span><strong>${player.first_name} ${player.last_name}</strong></span>
-                       <span>PTS: ${s.pts||0} | REB: ${s.reb||0} | AST: ${s.ast||0}</span>`;
-        content.appendChild(div);
+        const row=document.createElement('div');
+        row.className='table-row';
+        row.innerHTML=`<span>${player.first_name} ${player.last_name}</span><span>${s.pts||0}</span><span>${s.reb||0}</span><span>${s.ast||0}</span>`;
+        content.appendChild(row);
       });
     }
     modal.style.display='block';
   }catch(err){ content.innerHTML='Error loading stats'; console.error(err);}
 }
 
-// --- Close modal ---
-document.getElementById('close-modal').addEventListener('click', ()=>{document.getElementById('modal').style.display='none';});
+// Close modal
+document.getElementById('close-modal').addEventListener('click', ()=>{ document.getElementById('modal').style.display='none'; });
 
-// --- Initialize ---
+// Initialize
 fetchPlayers();
 displayTopPerformers();
 fetchGames();
