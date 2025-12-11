@@ -4,13 +4,53 @@
     <meta charset="UTF-8">
     <title>Player Stat Card</title>
     <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800&family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <div id="stat-card-container">
-        <h1 id="player-name"></h1>
-        <h2 id="game-details"></h2>
-        <div id="basic-stats" class="grid"></div>
-        <div id="advanced-metrics" class="grid"></div>
+        <!-- Top Panel: Player Info -->
+        <div class="stat-panel" id="player-info-panel">
+            <div style="display: flex; align-items: center;">
+                <img id="player-photo" src="" alt="Player Photo" style="width: 100px; height: 100px; border-radius: 50%; margin-right: 20px;">
+                <div>
+                    <h1 id="player-name"></h1>
+                    <p id="player-details" style="color: #ccc;"></p>
+                </div>
+            </div>
+            <div id="game-details" style="margin-top: 10px;"></div>
+        </div>
+
+        <!-- Middle Panel: Core Stats -->
+        <div class="stat-panel">
+            <h3>Core Stats</h3>
+            <div id="basic-stats" class="grid">
+                <!-- Stats will be populated by stat-card.js -->
+            </div>
+        </div>
+
+        <!-- Bottom Tabs -->
+        <div class="tabs">
+            <button class="tab-link active" onclick="openTab(event, 'game-stats')">Game Stats</button>
+            <button class="tab-link" onclick="openTab(event, 'advanced-metrics')">Advanced Metrics</button>
+            <button class="tab-link" onclick="openTab(event, 'fantasy-breakdown')">Fantasy Breakdown</button>
+            <button class="tab-link" onclick="openTab(event, 'season-averages')">Season Averages</button>
+        </div>
+
+        <div id="game-stats" class="tab-content active">
+            <!-- Detailed game stats will be populated here -->
+        </div>
+
+        <div id="advanced-metrics" class="tab-content">
+            <!-- Advanced metrics will be populated here -->
+        </div>
+
+        <div id="fantasy-breakdown" class="tab-content">
+            <p>Fantasy points and breakdown will be displayed here.</p>
+        </div>
+
+        <div id="season-averages" class="tab-content">
+            <!-- Season averages will be populated here -->
+        </div>
     </div>
     <script src="stat-card.js"></script>
 </body>

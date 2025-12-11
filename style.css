@@ -1,16 +1,236 @@
-body { font-family: Arial, sans-serif; background:#121212; color:#fff; margin:0; padding:20px; }
-h1,h2 { text-align:center; color:#ff69b4; margin-bottom:15px; }
-#search { display:block; margin:0 auto 30px auto; padding:10px; width:300px; border-radius:5px; border:none; }
-.grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:15px; margin-bottom:30px; }
-.card { background:#00ffff20; border-radius:15px; padding:15px; display:flex; flex-direction:column; justify-content:space-between; transition:transform 0.2s; cursor:pointer; }
-.card:hover { transform:scale(1.05); background:#00ffff40; }
-.top-card { background:#ff69b420; font-weight:bold; padding:15px; border-radius:15px; text-align:center; cursor:default; }
-.card span { margin:5px 0; }
-.section { margin-bottom:40px; }
-.sortable-header { cursor:pointer; text-decoration:underline; }
-#modal { position:fixed; top:10%; left:50%; transform:translateX(-50%); background:#121212; border:2px solid #ff69b4; border-radius:15px; padding:20px; z-index:1000; max-width:600px; max-height:80%; overflow-y:auto; display:none; }
-#modal h3 { text-align:center; color:#ff69b4; margin-bottom:10px; }
-#close-modal { cursor:pointer; color:#ff69b4; text-align:right; font-weight:bold; margin-bottom:10px; }
-.table-header { font-weight:bold; display:flex; justify-content:space-between; margin-bottom:5px; cursor:pointer; }
-.table-row { display:flex; justify-content:space-between; margin-bottom:3px; }.player-image { width: 100%; height: auto; border-radius: 10px; margin-bottom: 10px; }
-.team-logo { width: 50px; height: 50px; border-radius: 50%; margin-bottom: 10px; }
+body {
+    font-family: 'Inter', 'Montserrat', sans-serif;
+    background-color: #0d0d0d;
+    color: #fff;
+    margin: 0;
+    padding: 20px;
+}
+
+h1, h2 {
+    text-align: center;
+    color: #ff6bd6;
+    margin-bottom: 15px;
+}
+
+#search {
+    display: block;
+    margin: 0 auto 30px auto;
+    padding: 10px;
+    width: 300px;
+    border-radius: 5px;
+    border: 1px solid #141414;
+    background-color: #141414;
+    color: #fff;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.card {
+    background-color: #141414;
+    border: 1px solid #2de2e6;
+    border-radius: 15px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 10px rgba(45, 226, 230, 0.3);
+}
+
+.player-image {
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
+
+.team-logo {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-bottom: 10px;
+}
+
+/* Stat Card Specific Styles */
+#stat-card-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #141414;
+    border-radius: 15px;
+    box-shadow: 0 0 20px rgba(45, 226, 230, 0.2);
+}
+
+#player-name {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #2de2e6;
+    text-align: left;
+    margin-bottom: 5px;
+}
+
+#game-details {
+    font-size: 1.2rem;
+    color: #ccc;
+    text-align: left;
+    margin-bottom: 20px;
+}
+
+.stat-panel {
+    margin-bottom: 20px;
+}
+
+.stat-panel h3 {
+    color: #ff6bd6;
+    border-bottom: 2px solid #ff6bd6;
+    padding-bottom: 5px;
+    margin-bottom: 15px;
+}
+
+#basic-stats .card, #advanced-metrics .card {
+    background-color: #0d0d0d;
+    text-align: center;
+}
+
+#basic-stats .card span:first-child {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #2de2e6;
+    display: block;
+    margin-bottom: 5px;
+}
+
+#basic-stats .card span:last-child {
+    font-size: 1rem;
+    color: #ccc;
+}
+
+.tabs {
+    display: flex;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #333;
+}
+
+.tab-link {
+    padding: 10px 20px;
+    cursor: pointer;
+    border: none;
+    background-color: transparent;
+    color: #ccc;
+    font-size: 1rem;
+    transition: color 0.2s, border-bottom 0.2s;
+}
+
+.tab-link.active {
+    color: #ff6bd6;
+    border-bottom: 2px solid #ff6bd6;
+}
+
+.tab-content {
+    display: none;
+    opacity: 0;
+    transition: opacity 0.5s ease-in-out;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Animations */
+.stat-value {
+    transition: color 0.3s, transform 0.3s;
+}
+
+.stat-value.updated {
+    color: #2de2e6;
+    transform: scale(1.2);
+    animation: glow 0.5s ease-in-out;
+}
+
+@keyframes glow {
+    0% { text-shadow: 0 0 5px #2de2e6; }
+    50% { text-shadow: 0 0 20px #2de2e6; }
+    100% { text-shadow: 0 0 5px #2de2e6; }
+}
+
+/* Tooltip */
+.tooltip {
+    position: relative;
+    display: inline-block;
+}
+
+.tooltip .tooltiptext {
+    visibility: hidden;
+    width: 120px;
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 0;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -60px;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.tooltip:hover .tooltiptext {
+    visibility: visible;
+    opacity: 1;
+}
+
+
+/* Modal styles */
+#modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: #141414;
+    border: 2px solid #ff6bd6;
+    border-radius: 15px;
+    padding: 20px;
+    z-index: 1000;
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    display: none;
+    box-shadow: 0 0 20px rgba(255, 107, 214, 0.3);
+}
+
+#close-modal {
+    cursor: pointer;
+    color: #ff6bd6;
+    text-align: right;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+/* Responsiveness */
+@media (max-width: 768px) {
+    .grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+
+    #player-name {
+        font-size: 2rem;
+    }
+
+    #basic-stats .card span:first-child {
+        font-size: 1.4rem;
+    }
+}

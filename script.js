@@ -124,43 +124,11 @@ async function fetchNews(){
   }catch(err){ console.error(err);}
 }
 
-// Show player details modal
-async function showPlayerDetails(player){
-  const modal=document.getElementById('modal');
-  const title=document.getElementById('modal-title');
-  const content=document.getElementById('modal-content');
-  title.textContent=`${player.first_name} ${player.last_name}`;
-  let playerInfo = `
-    <p><strong>Team:</strong> ${player.team || "N/A"}</p>
-    <p><strong>Position:</strong> ${player.position || "N/A"}</p>
-    <p><strong>Age:</strong> ${player.age || "N/A"}</p>
-    <p><strong>Height:</strong> ${player.height || "N/A"}</p>
-    <p><strong>Weight:</strong> ${player.weight || "N/A"}</p>
-    <a href="https://sleeper.app/player/${player.player_id}" target="_blank">View on Sleeper</a>
-  `;
-  content.innerHTML= playerInfo + 'Loading stats...';
-  try{
-    const res=await fetch('https://api.sleeper.app/v1/stats/nba/2025/1');
-    const stats=await res.json();
-    const playerStats=stats.filter(s=>s.player_id===player.player_id);
-    if(playerStats.length===0){ content.innerHTML= playerInfo + '<span>No stats available.</span>'; }
-    else{
-      let statsTable = `
-        <div class="table-header">
-          <span>Date</span><span>PTS</span><span>REB</span><span>AST</span>
-        </div>
-      `;
-      playerStats.forEach(s=>{
-        statsTable += `
-          <div class="table-row">
-            <span>${s.game_id}</span><span>${s.pts||0}</span><span>${s.reb||0}</span><span>${s.ast||0}</span>
-          </div>
-        `;
-      });
-      content.innerHTML = playerInfo + statsTable;
-    }
-    modal.style.display='block';
-  }catch(err){ content.innerHTML='Error loading stats'; console.error(err);}
+// Navigate to player stat card
+function showPlayerDetails(player) {
+    const gameId = 'latest'; // The stat-card.js will handle fetching the latest game
+    const playerName = `${player.first_name} ${player.last_name}`;
+    window.location.href = `stat-card.html?playerId=${player.player_id}&gameId=${gameId}&playerName=${playerName}&playerPosition=${player.position}&playerTeam=${player.team}`;
 }
 
 // Show game details modal
