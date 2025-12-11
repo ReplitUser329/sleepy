@@ -1,35 +1,16 @@
-body {
-    font-family: Arial, sans-serif;
-    background: #121212;
-    color: #fff;
-    margin: 0;
-    padding: 20px;
-}
-
-.trend-up {
-    color: #00ff00; /* Green for upward trend */
-    animation: fade-in 0.5s;
-}
-
-.trend-down {
-    color: #ff0000; /* Red for downward trend */
-    animation: fade-in 0.5s;
-}
-
-@keyframes fade-in {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-
-.grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill,minmax(220px,1fr));
-    gap: 15px;
-    margin-bottom: 30px;
-}
-
-.card {
-    background: #00ffff20;
-    border-radius: 15px;
-    padding: 15px;
-}
+body { font-family: Arial, sans-serif; background:#121212; color:#fff; margin:0; padding:20px; }
+h1,h2 { text-align:center; color:#ff69b4; margin-bottom:15px; }
+#search { display:block; margin:0 auto 30px auto; padding:10px; width:300px; border-radius:5px; border:none; }
+.grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:15px; margin-bottom:30px; }
+.card { background:#00ffff20; border-radius:15px; padding:15px; display:flex; flex-direction:column; justify-content:space-between; transition:transform 0.2s; cursor:pointer; }
+.card:hover { transform:scale(1.05); background:#00ffff40; }
+.top-card { background:#ff69b420; font-weight:bold; padding:15px; border-radius:15px; text-align:center; cursor:default; }
+.card span { margin:5px 0; }
+.section { margin-bottom:40px; }
+.sortable-header { cursor:pointer; text-decoration:underline; }
+#modal { position:fixed; top:10%; left:50%; transform:translateX(-50%); background:#121212; border:2px solid #ff69b4; border-radius:15px; padding:20px; z-index:1000; max-width:600px; max-height:80%; overflow-y:auto; display:none; }
+#modal h3 { text-align:center; color:#ff69b4; margin-bottom:10px; }
+#close-modal { cursor:pointer; color:#ff69b4; text-align:right; font-weight:bold; margin-bottom:10px; }
+.table-header { font-weight:bold; display:flex; justify-content:space-between; margin-bottom:5px; cursor:pointer; }
+.table-row { display:flex; justify-content:space-between; margin-bottom:3px; }.player-image { width: 100%; height: auto; border-radius: 10px; margin-bottom: 10px; }
+.team-logo { width: 50px; height: 50px; border-radius: 50%; margin-bottom: 10px; }
