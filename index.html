@@ -84,7 +84,23 @@ function displayPlayers(players){
     div.innerHTML=`<span><strong>${p.first_name} ${p.last_name}</strong></span>
                    <span>Team: ${p.team||"N/A"}</span>
                    <span>Position: ${p.position||"N/A"}</span>`;
-    div.addEventListener('click',()=>showPlayerDetails(p));
+
+    const playerTeam = p.team;
+    // Find an active or recent game for the player's team
+    const game = playerTeam ? allGames.find(g => (g.home_team === playerTeam || g.away_team === playerTeam) && g.status.toLowerCase() !== 'scheduled') : null;
+
+    if (game) {
+        // If a game is found, make the card clickable to view the stat card
+        div.addEventListener('click', () => {
+            const today = new Date().toISOString().split('T')[0]; // Assume game is today
+            const playerName = `${p.first_name} ${p.last_name}`;
+            window.location.href = `stat-card.html?playerName=${encodeURIComponent(playerName)}&date=${today}`;
+        });
+    } else {
+        // If no game, make the card non-interactive
+        div.style.opacity = '0.6';
+        div.style.cursor = 'default';
+    }
     container.appendChild(div);
   });
 }
@@ -188,36 +204,6 @@ async function fetchNews(){
   }catch(err){ console.error(err);}
 }
 
-// Show player details modal
-async function showPlayerDetails(player){
-  const modal=document.getElementById('modal');
-  const title=document.getElementById('modal-title');
-  const content=document.getElementById('modal-content');
-  title.textContent=`${player.first_name} ${player.last_name}`;
-  content.innerHTML='Loading stats...';
-  try{
-    const res=await fetch('https://api.sleeper.app/v1/stats/nba/2025/1');
-    const stats=await res.json();
-    const playerStats=stats.filter(s=>s.player_id===player.player_id);
-    if(playerStats.length===0){ content.innerHTML='<span>No stats available.</span>'; }
-    else{
-      content.innerHTML='';
-      // Create sortable table
-      const header=document.createElement('div');
-      header.className='table-header';
-      header.innerHTML='<span>Date</span><span>PTS</span><span>REB</span><span>AST</span>';
-      content.appendChild(header);
-      playerStats.forEach(s=>{
-        const row=document.createElement('div');
-        row.className='table-row';
-        row.innerHTML=`<span>${s.game_id}</span><span>${s.pts||0}</span><span>${s.reb||0}</span><span>${s.ast||0}</span>`;
-        content.appendChild(row);
-      });
-    }
-    modal.style.display='block';
-  }catch(err){ content.innerHTML='Error loading stats'; console.error(err);}
-}
-
 // Show game details modal
 async function showGameDetails(game){
   const modal=document.getElementById('modal');
@@ -253,11 +239,14 @@ async function showGameDetails(game){
 document.getElementById('close-modal').addEventListener('click', ()=>{ document.getElementById('modal').style.display='none'; });
 
 // Initialize
-fetchPlayers();
-displayTopPerformers();
-fetchGames();
-fetchTeams();
-fetchNews();
+async function init() {
+    await fetchGames(); // Ensures allGames is populated first
+    await fetchPlayers(); // Now has access to allGames
+    displayTopPerformers();
+    fetchTeams();
+    fetchNews();
+}
+init();
 </script>
 </body>
 </html>
