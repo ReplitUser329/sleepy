@@ -1,0 +1,142 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+
+:root {
+  --teal: #2de2e6;
+  --pink: #ff6bd6;
+  --dark-bg: #0d0d0d;
+  --panel-bg: #141414;
+  --text-main: #ffffff;
+  --text-subtle: #bdbdbd;
+}
+
+.player-card-container {
+  background: var(--panel-bg);
+  border-radius: 14px;
+  padding: 20px;
+  color: var(--text-main);
+  font-family: "Inter", sans-serif;
+  box-shadow: 0 0 12px #00000055;
+}
+
+.psc-header {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.psc-photo {
+  width: 90px;
+  height: 90px;
+  border-radius: 12px;
+  border: 2px solid var(--teal);
+}
+
+.psc-status {
+  color: var(--pink);
+  font-weight: 600;
+}
+
+.psc-main-stats {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  background: #111;
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+}
+
+.psc-stat {
+  text-align: center;
+  padding: 6px 0;
+  position: relative;
+  transition: 0.2s;
+}
+
+.psc-stat-value {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--teal);
+}
+
+.psc-stat.flash {
+  animation: flashGlow 1.2s ease;
+}
+
+@keyframes flashGlow {
+  0% { background: var(--teal); color: #000; }
+  100% { background: transparent; color: var(--teal); }
+}
+
+.psc-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.psc-tabs button {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  background: #222;
+  color: var(--text-main);
+  border: 1px solid #333;
+  transition: 0.2s;
+}
+
+.psc-tabs button.active {
+  background: var(--pink);
+  color: #000;
+  font-weight: 700;
+}
+
+/* Tab content */
+.psc-tab-content {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.psc-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 15px;
+}
+
+.psc-grid-item {
+  background: #222;
+  padding: 10px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.psc-grid-label {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--text-subtle);
+  margin-bottom: 5px;
+}
+
+.psc-grid-value {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+@media (max-width: 600px) {
+  .psc-header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .psc-main-stats {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .psc-tabs {
+    flex-direction: column;
+  }
+}
