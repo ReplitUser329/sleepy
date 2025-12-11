@@ -12,4 +12,5 @@ h1,h2 { text-align:center; color:#ff69b4; margin-bottom:15px; }
 #modal h3 { text-align:center; color:#ff69b4; margin-bottom:10px; }
 #close-modal { cursor:pointer; color:#ff69b4; text-align:right; font-weight:bold; margin-bottom:10px; }
 .table-header { font-weight:bold; display:flex; justify-content:space-between; margin-bottom:5px; cursor:pointer; }
-.table-row { display:flex; justify-content:space-between; margin-bottom:3px; }
+.table-row { display:flex; justify-content:space-between; margin-bottom:3px; }.player-image { width: 100%; height: auto; border-radius: 10px; margin-bottom: 10px; }
+.team-logo { width: 50px; height: 50px; border-radius: 50%; margin-bottom: 10px; }

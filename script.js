@@ -15,7 +15,8 @@ function displayPlayers(players){
   players.forEach(p=>{
     const div=document.createElement('div');
     div.className='card';
-    div.innerHTML=`<span><strong>${p.first_name} ${p.last_name}</strong></span>
+    div.innerHTML=`<img src="https://sleepercdn.com/content/nba/players/${p.player_id}.jpg" alt="${p.first_name} ${p.last_name}" class="player-image" onerror="this.style.display='none'">
+                   <span><strong>${p.first_name} ${p.last_name}</strong></span>
                    <span>Team: ${p.team||"N/A"}</span>
                    <span>Position: ${p.position||"N/A"}</span>`;
     div.addEventListener('click',()=>showPlayerDetails(p));
@@ -77,7 +78,8 @@ async function fetchTeams(){
   Object.values(teams).forEach(team=>{
     const div=document.createElement('div');
     div.className='card';
-    div.innerHTML=`<span>${team.full_name} (${team.abbr})</span>
+    div.innerHTML=`<img src="https://sleepercdn.com/content/nba/logos/${team.team_id}.png" alt="${team.full_name}" class="team-logo" onerror="this.style.display='none'">
+                   <span>${team.full_name} (${team.abbr})</span>
                    <span>Conf: ${team.conference} | Div: ${team.division}</span>`;
     container.appendChild(div);
   });
@@ -89,11 +91,11 @@ function displayStandings(){
   const container=document.getElementById('standings');
   container.innerHTML='';
   let teamsArray=Object.values(allTeams);
-  if(standingsSorted) teamsArray.sort((a,b)=>(b.wins||0)-(a.wins||0));
+  if(standingsSorted) teamsArray.sort((a,b)=>(b.settings.wins||0)-(a.settings.wins||0));
   teamsArray.forEach(team=>{
     const div=document.createElement('div');
     div.className='card';
-    div.textContent=`${team.full_name} | ${team.wins||0}-${team.losses||0}`;
+    div.textContent=`${team.full_name} | ${team.settings.wins||0}-${team.settings.losses||0}`;
     container.appendChild(div);
   });
 }
@@ -128,25 +130,34 @@ async function showPlayerDetails(player){
   const title=document.getElementById('modal-title');
   const content=document.getElementById('modal-content');
   title.textContent=`${player.first_name} ${player.last_name}`;
-  content.innerHTML='Loading stats...';
+  let playerInfo = `
+    <p><strong>Team:</strong> ${player.team || "N/A"}</p>
+    <p><strong>Position:</strong> ${player.position || "N/A"}</p>
+    <p><strong>Age:</strong> ${player.age || "N/A"}</p>
+    <p><strong>Height:</strong> ${player.height || "N/A"}</p>
+    <p><strong>Weight:</strong> ${player.weight || "N/A"}</p>
+    <a href="https://sleeper.app/player/${player.player_id}" target="_blank">View on Sleeper</a>
+  `;
+  content.innerHTML= playerInfo + 'Loading stats...';
   try{
     const res=await fetch('https://api.sleeper.app/v1/stats/nba/2025/1');
     const stats=await res.json();
     const playerStats=stats.filter(s=>s.player_id===player.player_id);
-    if(playerStats.length===0){ content.innerHTML='<span>No stats available.</span>'; }
+    if(playerStats.length===0){ content.innerHTML= playerInfo + '<span>No stats available.</span>'; }
     else{
-      content.innerHTML='';
-      // Create sortable table
-      const header=document.createElement('div');
-      header.className='table-header';
-      header.innerHTML='<span>Date</span><span>PTS</span><span>REB</span><span>AST</span>';
-      content.appendChild(header);
+      let statsTable = `
+        <div class="table-header">
+          <span>Date</span><span>PTS</span><span>REB</span><span>AST</span>
+        </div>
+      `;
       playerStats.forEach(s=>{
-        const row=document.createElement('div');
-        row.className='table-row';
-        row.innerHTML=`<span>${s.game_.id}</span><span>${s.pts||0}</span><span>${s.reb||0}</span><span>${s.ast||0}</span>`;
-        content.appendChild(row);
+        statsTable += `
+          <div class="table-row">
+            <span>${s.game_id}</span><span>${s.pts||0}</span><span>${s.reb||0}</span><span>${s.ast||0}</span>
+          </div>
+        `;
       });
+      content.innerHTML = playerInfo + statsTable;
     }
     modal.style.display='block';
   }catch(err){ content.innerHTML='Error loading stats'; console.error(err);}
@@ -158,26 +169,50 @@ async function showGameDetails(game){
   const title=document.getElementById('modal-title');
   const content=document.getElementById('modal-content');
   title.textContent=`${game.away_team} @ ${game.home_team}`;
-  content.innerHTML='Loading player stats...';
+  let gameInfo = `
+    <p><strong>Status:</strong> ${game.status}</p>
+    <p><strong>Score:</strong> ${game.away_team} ${game.away_score} - ${game.home_team} ${game.home_score}</p>
+  `;
+  content.innerHTML= gameInfo + 'Loading player stats...';
   try{
     const res=await fetch('https://api.sleeper.app/v1/stats/nba/2025/1');
     const stats=await res.json();
     const playersInGame=stats.filter(s=>s.team===game.home_team||s.team===game.away_team);
-    if(playersInGame.length===0){ content.innerHTML='<span>No stats available.</span>'; }
+    if(playersInGame.length===0){ content.innerHTML= gameInfo + '<span>No stats available.</span>'; }
     else{
-      content.innerHTML='';
-      const header=document.createElement('div');
-      header.className='table-header';
-      header.innerHTML='<span>Player</span><span>PTS</span><span>REB</span><span>AST</span>';
-      content.appendChild(header);
-      playersInGame.forEach(s=>{
+      let homePlayers = playersInGame.filter(p => p.team === game.home_team);
+      let awayPlayers = playersInGame.filter(p => p.team === game.away_team);
+      let statsTable = `
+        <h2>${game.home_team}</h2>
+        <div class="table-header">
+          <span>Player</span><span>PTS</span><span>REB</span><span>AST</span>
+        </div>
+      `;
+      homePlayers.forEach(s=>{
         const player=allPlayers.find(p=>p.player_id===s.player_id);
         if(!player) return;
-        const row=document.createElement('div');
-        row.className='table-row';
-        row.innerHTML=`<span>${player.first_name} ${player.last_name}</span><span>${s.pts||0}</span><span>${s.reb||0}</span><span>${s.ast||0}</span>`;
-        content.appendChild(row);
+        statsTable += `
+          <div class="table-row">
+            <span>${player.first_name} ${player.last_name}</span><span>${s.pts||0}</span><span>${s.reb||0}</span><span>${s.ast||0}</span>
+          </div>
+        `;
       });
+      statsTable += `
+        <h2>${game.away_team}</h2>
+        <div class="table-header">
+          <span>Player</span><span>PTS</span><span>REB</span><span>AST</span>
+        </div>
+      `;
+      awayPlayers.forEach(s=>{
+        const player=allPlayers.find(p=>p.player_id===s.player_id);
+        if(!player) return;
+        statsTable += `
+          <div class="table-row">
+            <span>${player.first_name} ${player.last_name}</span><span>${s.pts||0}</span><span>${s.reb||0}</span><span>${s.ast||0}</span>
+          </div>
+        `;
+      });
+      content.innerHTML = gameInfo + statsTable;
     }
     modal.style.display='block';
   }catch(err){ content.innerHTML='Error loading stats'; console.error(err);}
