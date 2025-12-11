@@ -1,0 +1,35 @@
+body {
+    font-family: Arial, sans-serif;
+    background: #121212;
+    color: #fff;
+    margin: 0;
+    padding: 20px;
+}
+
+.trend-up {
+    color: #00ff00; /* Green for upward trend */
+    animation: fade-in 0.5s;
+}
+
+.trend-down {
+    color: #ff0000; /* Red for downward trend */
+    animation: fade-in 0.5s;
+}
+
+@keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill,minmax(220px,1fr));
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.card {
+    background: #00ffff20;
+    border-radius: 15px;
+    padding: 15px;
+}
