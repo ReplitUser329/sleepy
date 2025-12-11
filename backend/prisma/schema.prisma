@@ -1,0 +1,85 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model nba_players {
+  id         Int      @id @default(autoincrement())
+  first_name String
+  last_name  String
+  full_name  String
+  position   String?
+  team_abbr  String?
+  // Relationships
+  game_stats nba_player_game_stats[]
+  rolling_averages nba_player_rolling_averages[]
+
+  @@index([full_name])
+}
+
+model nba_games {
+  id          Int      @id @default(autoincrement())
+  game_date   DateTime @db.Date
+  home_team   String
+  away_team   String
+  home_score  Int
+  away_score  Int
+  status      String
+  // Relationships
+  player_stats nba_player_game_stats[]
+
+  @@index([game_date])
+}
+
+model nba_player_game_stats {
+  id          Int      @id @default(autoincrement())
+  player_id   Int
+  game_id     Int
+  pts         Int?
+  reb         Int?
+  ast         Int?
+  stl         Int?
+  blk         Int?
+  turnover    Int?
+  fgm         Int?
+  fga         Int?
+  ftm         Int?
+  fta         Int?
+  three_pm    Int?
+  three_pa    Int?
+  // Advanced stats can be added here
+  ts_percent  Float?
+  efg_percent Float?
+  usg_percent Float?
+
+  // Relationships
+  player      nba_players @relation(fields: [player_id], references: [id])
+  game        nba_games   @relation(fields: [game_id], references: [id])
+
+  @@unique([player_id, game_id])
+}
+
+model nba_player_rolling_averages {
+  id              Int      @id @default(autoincrement())
+  player_id       Int      @unique
+  last_5_avg_pts  Float?
+  last_10_avg_pts Float?
+  season_avg_pts  Float?
+  last_5_avg_reb  Float?
+  last_10_avg_reb Float?
+  season_avg_reb  Float?
+  last_5_avg_ast  Float?
+  last_10_avg_ast Float?
+  season_avg_ast  Float?
+  // Add other rolling averages as needed
+
+  // Relationships
+  player          nba_players @relation(fields: [player_id], references: [id])
+}
