@@ -13,16 +13,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (playerId) {
         fetchLatestGameStats(playerId);
+        fetchSeasonAverages(playerId);
         setInterval(() => fetchLatestGameStats(playerId), 30000);
     }
 });
 
 async function fetchLatestGameStats(playerId) {
     try {
-        // Fetch the most recent game for the player. The API returns games in descending chronological order.
-        const statsResponse = await fetch(`https://www.balldontlie.io/api/v1/stats?player_ids[]=${playerId}&per_page=1`);
+        const statsResponse = await fetch(`/api/players/${playerId}/stats`);
         const statsData = await statsResponse.json();
-        const playerStats = statsData.data[0];
+        const playerStats = statsData[0];
 
         if (playerStats) {
             const game = playerStats.game;
@@ -115,7 +115,7 @@ function calculateAndDisplayFantasyPoints(stats) {
 
 async function fetchSeasonAverages(playerId) {
     try {
-        const response = await fetch(`https://www.balldontlie.io/api/v1/season_averages?player_ids[]=${playerId}`);
+        const response = await fetch(`/api/players/${playerId}/season_averages`);
         const data = await response.json();
         const seasonAverages = data.data[0];
 
@@ -163,10 +163,4 @@ function openTab(evt, tabName) {
     }, 10);
 
     evt.currentTarget.className += " active";
-
-    if (tabName === 'season-averages' && !activeTab.innerHTML.trim()) {
-        const params = new URLSearchParams(window.location.search);
-        const playerId = params.get('playerId');
-        fetchSeasonAverages(playerId);
-    }
 }

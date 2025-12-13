@@ -2,7 +2,7 @@ let allPlayers=[], allTeams={}, standingsSorted=false, allGames=[];
 
 // Fetch players
 async function fetchPlayers(){
-  const res=await fetch('https://api.sleeper.app/v1/players/nba');
+  const res=await fetch('/api/players');
   const data=await res.json();
   const allStarNames = [
     "Luka Dončić", "Stephen Curry", "Victor Wembanyama", "Kevin Durant", "Shai Gilgeous-Alexander",
@@ -43,7 +43,7 @@ document.getElementById('search').addEventListener('input', e=>{
 
 // Top performers
 async function displayTopPerformers(){
-  const res=await fetch('https://api.sleeper.app/v1/stats/nba/2025/1');
+  const res=await fetch('/api/top-performers');
   const stats=await res.json();
   const container=document.getElementById('top-performers');
   const topPlayers=stats.filter(s=>s.pts).sort((a,b)=>b.pts-a.pts).slice(0,5);
@@ -62,9 +62,9 @@ async function displayTopPerformers(){
 
 // Fetch games
 async function fetchGames(){
-  const res=await fetch('https://api.sleeper.app/v1/state/nba');
+  const res=await fetch('/api/games');
   const data=await res.json();
-  allGames=data.nba_games;
+  allGames=data;
   const container=document.getElementById('games');
   container.innerHTML='';
   allGames.slice(-6).forEach(game=>{
@@ -78,48 +78,10 @@ async function fetchGames(){
   });
 }
 
-// Fetch teams
-async function fetchTeams(){
-  const res=await fetch('https://api.sleeper.app/v1/teams/nba');
-  const teams=await res.json();
-  allTeams=teams;
-  const container=document.getElementById('teams');
-  container.innerHTML='';
-  Object.values(teams).forEach(team=>{
-    const div=document.createElement('div');
-    div.className='card';
-    div.innerHTML=`<img src="https://sleepercdn.com/content/nba/logos/${team.team_id}.png" alt="${team.full_name}" class="team-logo" onerror="this.style.display='none'">
-                   <span>${team.full_name} (${team.abbr})</span>
-                   <span>Conf: ${team.conference} | Div: ${team.division}</span>`;
-    container.appendChild(div);
-  });
-  displayStandings();
-}
-
-// Standings
-function displayStandings(){
-  const container=document.getElementById('standings');
-  container.innerHTML='';
-  let teamsArray=Object.values(allTeams);
-  if(standingsSorted) teamsArray.sort((a,b)=>(b.settings.wins||0)-(a.settings.wins||0));
-  teamsArray.forEach(team=>{
-    const div=document.createElement('div');
-    div.className='card';
-    div.textContent=`${team.full_name} | ${team.settings.wins||0}-${team.settings.losses||0}`;
-    container.appendChild(div);
-  });
-}
-
-// Toggle standings sort
-document.getElementById('sort-standings').addEventListener('click', ()=>{
-  standingsSorted=!standingsSorted;
-  displayStandings();
-});
-
 // Fetch news (replace YOUR_NEWSAPI_KEY)
 async function fetchNews(){
   try{
-    const res=await fetch('https://newsapi.org/v2/top-headlines?category=sports&q=NBA&apiKey=YOUR_NEWSAPI_KEY&pageSize=6');
+    const res=await fetch('/api/news');
     const data=await res.json();
     const container=document.getElementById('news');
     container.innerHTML='';
@@ -153,13 +115,13 @@ async function showGameDetails(game){
   `;
   content.innerHTML= gameInfo + 'Loading player stats...';
   try{
-    const res=await fetch('https://api.sleeper.app/v1/stats/nba/2025/1');
+    const res=await fetch(`/api/players/stats/game`);
     const stats=await res.json();
-    const playersInGame=stats.filter(s=>s.team===game.home_team||s.team===game.away_team);
+    const playersInGame=stats.filter(s=>s.team.abbreviation===game.home_team||s.team.abbreviation===game.away_team);
     if(playersInGame.length===0){ content.innerHTML= gameInfo + '<span>No stats available.</span>'; }
     else{
-      let homePlayers = playersInGame.filter(p => p.team === game.home_team);
-      let awayPlayers = playersInGame.filter(p => p.team === game.away_team);
+      let homePlayers = playersInGame.filter(p => p.team.abbreviation === game.home_team);
+      let awayPlayers = playersInGame.filter(p => p.team.abbreviation === game.away_team);
       let statsTable = `
         <h2>${game.home_team}</h2>
         <div class="table-header">
@@ -167,7 +129,7 @@ async function showGameDetails(game){
         </div>
       `;
       homePlayers.forEach(s=>{
-        const player=allPlayers.find(p=>p.player_id===s.player_id);
+        const player=allPlayers.find(p=>p.player_id===s.player.id.toString());
         if(!player) return;
         statsTable += `
           <div class="table-row">
@@ -182,7 +144,7 @@ async function showGameDetails(game){
         </div>
       `;
       awayPlayers.forEach(s=>{
-        const player=allPlayers.find(p=>p.player_id===s.player_id);
+        const player=allPlayers.find(p=>p.player_id===s.player.id.toString());
         if(!player) return;
         statsTable += `
           <div class="table-row">
@@ -203,5 +165,4 @@ document.getElementById('close-modal').addEventListener('click', ()=>{ document.
 fetchPlayers();
 displayTopPerformers();
 fetchGames();
-fetchTeams();
 fetchNews();
