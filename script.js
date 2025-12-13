@@ -15,7 +15,27 @@ async function fetchPlayers(){
     const fullName = `${p.first_name} ${p.last_name}`;
     return allStarNames.includes(fullName);
   }).sort((a,b)=>a.last_name.localeCompare(b.last_name));
+
+  await fetchLocalPlayerStats(allPlayers);
   displayPlayers(allPlayers);
+}
+
+async function fetchLocalPlayerStats(players) {
+  for (const player of players) {
+    try {
+      const res = await fetch(`/api/players/${player.player_id}/stats`);
+      const stats = await res.json();
+      // Find the stats for the specific date "2025-12-12"
+      if (stats && stats.length > 0) {
+        const statForDate = stats.find(stat => stat.date === "2025-12-12");
+        if (statForDate) {
+          player.stats = statForDate;
+        }
+      }
+    } catch (error) {
+      console.error(`Error fetching local stats for ${player.first_name} ${player.last_name}:`, error);
+    }
+  }
 }
 
 // Display players
@@ -25,10 +45,15 @@ function displayPlayers(players){
   players.forEach(p=>{
     const div=document.createElement('div');
     div.className='card';
+    let statsHTML = '<span>No recent game stats</span>';
+    if (p.stats) {
+        statsHTML = `<span>PTS: ${p.stats.pts} | REB: ${p.stats.reb} | AST: ${p.stats.ast}</span>`;
+    }
     div.innerHTML=`<img src="https://sleepercdn.com/content/nba/players/${p.player_id}.jpg" alt="${p.first_name} ${p.last_name}" class="player-image" onerror="this.style.display='none'">
                    <span><strong>${p.first_name} ${p.last_name}</strong></span>
                    <span>Team: ${p.team||"N/A"}</span>
-                   <span>Position: ${p.position||"N/A"}</span>`;
+                   <span>Position: ${p.position||"N/A"}</span>
+                   ${statsHTML}`;
     div.addEventListener('click',()=>showPlayerDetails(p));
     container.appendChild(div);
   });
