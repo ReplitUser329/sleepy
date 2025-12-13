@@ -12,8 +12,8 @@ async function updateAllStats() {
 
     // 2. Fetch game stats (using mock data for now)
     const gameStats = [
-      { "player_id": "1432", "pts": 25, "reb": 10, "ast": 5 },
-      { "player_id": "1846", "pts": 30, "reb": 5, "ast": 8 }
+      { "player_id": "1432", "date": "2025-12-12", "pts": 25, "reb": 10, "ast": 5 },
+      { "player_id": "1846", "date": "2025-12-12", "pts": 30, "reb": 5, "ast": 8 }
     ];
     await writeData('stats.json', gameStats);
     console.log('Successfully saved mock game stats.');
