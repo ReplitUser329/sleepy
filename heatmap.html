@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NBA Shot Heatmap</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>Luka Dončić Real-Time Shot Heatmap</h1>
+    <div id="heatmap-container"></div>
+
+    <!-- React and Babel CDNs -->
+    <script src="https://unpkg.com/react@17/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@17/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Socket.io Client -->
+    <script src="/socket.io/socket.io.js"></script>
+
+    <!-- React Component -->
+    <script type="text/babel" src="ShotHeatmap.jsx"></script>
+
+    <!-- Mount React Component -->
+    <script type="text/babel">
+        ReactDOM.render(<ShotHeatmap />, document.getElementById('heatmap-container'));
+    </script>
+</body>
+</html>
