@@ -4,7 +4,17 @@ let allPlayers=[], allTeams={}, standingsSorted=false, allGames=[];
 async function fetchPlayers(){
   const res=await fetch('https://api.sleeper.app/v1/players/nba');
   const data=await res.json();
-  allPlayers=Object.values(data).filter(p=>p.first_name&&p.last_name).sort((a,b)=>a.last_name.localeCompare(b.last_name));
+  const allStarNames = [
+    "Luka Dončić", "Stephen Curry", "Victor Wembanyama", "Kevin Durant", "Shai Gilgeous-Alexander",
+    "LeBron James", "Giannis Antetokounmpo", "Nikola Jokić", "Joel Embiid", "Jayson Tatum",
+    "Damian Lillard", "Donovan Mitchell", "Jaylen Brown", "Tyrese Haliburton", "Bam Adebayo",
+    "Julius Randle", "Jalen Brunson", "Trae Young", "Paolo Banchero", "Anthony Edwards",
+    "Karl-Anthony Towns", "Kawhi Leonard", "Devin Booker", "Anthony Davis"
+  ];
+  allPlayers=Object.values(data).filter(p => {
+    const fullName = `${p.first_name} ${p.last_name}`;
+    return allStarNames.includes(fullName);
+  }).sort((a,b)=>a.last_name.localeCompare(b.last_name));
   displayPlayers(allPlayers);
 }
 
